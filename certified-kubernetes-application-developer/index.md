@@ -16,10 +16,10 @@ I want to learn how to deploy, configure, and test containerized applications on
 - [x] - [Chapter 6: Security](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-6-security)
 - [x] - [Chapter 7: Exposing Applications](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-7-exposing-applications)
 - [x] - [Chapter 8: Troubleshooting](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-8-troubleshooting)
-- [ ] - [Kubernetes CKAD Example Questions Practical Challenge Series](https://codeburst.io/kubernetes-ckad-weekly-challenges-overview-and-tips-7282b36a2681)
-- [ ] - [CKAD-exercises](https://github.com/dgkanatsios/CKAD-exercises)
-- [ ] - [Kubernetes Certified Application Developer (CKAD) with Tests](https://www.udemy.com/course/certified-kubernetes-application-developer/)
-- [ ] - Take Cloud Native Certified Kubernetes Application Developer (CKAD) Program test
+- [x] - [Kubernetes CKAD Example Questions Practical Challenge Series](https://codeburst.io/kubernetes-ckad-weekly-challenges-overview-and-tips-7282b36a2681)
+- [x] - [CKAD-exercises](https://github.com/dgkanatsios/CKAD-exercises)
+- [x] - [Kubernetes Certified Application Developer (CKAD) with Tests](https://www.udemy.com/course/certified-kubernetes-application-developer/)
+- [x] - Take Cloud Native Certified Kubernetes Application Developer (CKAD) Program test
 
 ## Chapter 1: Before You Begin
 #### Outcomes
