@@ -1469,7 +1469,7 @@ There are a few Ingress Controllers with nginx and GCE that are officaly support
 - Discuss conformance testing
 - Discuss cluster certification
 
-#### Chapter 6: Exposing Applications - Review
+#### Chapter 8: Exposing Applications - Review
 1. Kubernetes includes cluster-wide logging?
   - a. True
   - b. False
@@ -1485,3 +1485,6 @@ There are a few Ingress Controllers with nginx and GCE that are officaly support
   - b. API functions the same
   - c. Minimum functionality
   - d. All of the above
+
+[answers](./review-answers.md)
+
