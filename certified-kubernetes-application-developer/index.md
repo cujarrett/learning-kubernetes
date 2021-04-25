@@ -8,14 +8,14 @@ __Disclaimer: most of this is pretty verbatim in an effort to not call it my own
 I want to learn how to deploy, configure, and test containerized applications on a multi-node Kubernetes cluster.
 
 ## Status
-- [x] - [Chapter 1: Before You Begin](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-1-before-you-begin)
-- [x] - [Chapter 2: Kubernetes Architecture](https://github.com/cujarrett/certified-kubernetes-application-developer-course/blob/master/README.md#chapter-2---kubernetes-architecture)
-- [x] - [Chapter 3: Build](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-3-build)
-- [x] - [Chapter 4: Design](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-4-design)
-- [x] - [Chapter 5: Deployment Configuration](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-5-deploy-configuration)
-- [x] - [Chapter 6: Security](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-6-security)
-- [x] - [Chapter 7: Exposing Applications](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-7-exposing-applications)
-- [x] - [Chapter 8: Troubleshooting](https://github.com/cujarrett/certified-kubernetes-application-developer-course#chapter-8-troubleshooting)
+- [x] - [Chapter 1: Before You Begin](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-1-before-you-begin)
+- [x] - [Chapter 2: Kubernetes Architecture](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-2-kubernetes-architecture)
+- [x] - [Chapter 3: Build](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-3-build)
+- [x] - [Chapter 4: Design](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-4-design)
+- [x] - [Chapter 5: Deployment Configuration](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-5-deploy-configuration)
+- [x] - [Chapter 6: Security](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-6-security)
+- [x] - [Chapter 7: Exposing Applications](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-7-exposing-applications)
+- [x] - [Chapter 8: Troubleshooting](https://github.com/cujarrett/learning-kubernetes/blob/main/certified-kubernetes-application-developer/index.md#chapter-8-troubleshooting)
 - [x] - [Kubernetes CKAD Example Questions Practical Challenge Series](https://codeburst.io/kubernetes-ckad-weekly-challenges-overview-and-tips-7282b36a2681)
 - [x] - [CKAD-exercises](https://github.com/dgkanatsios/CKAD-exercises)
 - [x] - [Kubernetes Certified Application Developer (CKAD) with Tests](https://www.udemy.com/course/certified-kubernetes-application-developer/)
