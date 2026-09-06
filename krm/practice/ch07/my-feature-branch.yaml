@@ -1,0 +1,13 @@
+apiVersion: platform.example.io/v1alpha1
+kind: FeatureBranch
+metadata:
+  name: analytics-feature
+spec:
+  repository: learning-crossplane
+  branchName: feature/add-analytics
+  sourceBranch: main
+  configContent: |
+    # Managed by Crossplane
+    feature: analytics
+    enabled: true
+    owner: platform-team

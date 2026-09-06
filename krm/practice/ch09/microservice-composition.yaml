@@ -1,0 +1,174 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: microservice-composition
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.io/v1alpha1
+    kind: MicroService
+  mode: Pipeline
+  pipeline:
+  - step: render-microservice
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{- $name := .observed.composite.resource.metadata.name }}
+          {{- $ns   := .observed.composite.resource.metadata.namespace }}
+          {{- $spec := .observed.composite.resource.spec }}
+
+          {{- /* ── Autoscaling config with safe nil defaults ── */}}
+          {{- $as         := $spec.autoscaling | default dict }}
+          {{- $asEnabled  := $as.enabled           | default false }}
+          {{- $asMin      := $as.minReplicas        | default 2 }}
+          {{- $asMax      := $as.maxReplicas        | default 10 }}
+          {{- $asCPU      := $as.targetCPUUtilization | default 70 }}
+
+          {{- /* ── Environment-driven replica default ── */}}
+          {{- $replicas := $spec.replicas | default 2 }}
+          {{- if eq $spec.environment "development" }}
+            {{- $replicas = 1 }}
+          {{- else if eq $spec.environment "production" }}
+            {{- $replicas = 3 }}
+          {{- end }}
+          {{- /* spec.replicas explicitly set overrides the environment default above */}}
+          {{- if $spec.replicas }}
+            {{- $replicas = $spec.replicas }}
+          {{- end }}
+
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: deployment
+            labels:
+              app: {{ $name }}
+              environment: {{ $spec.environment | default "production" }}
+              managed-by: crossplane
+          spec:
+            {{- /* Do not set replicas when HPA manages them */}}
+            {{- if not $asEnabled }}
+            replicas: {{ $replicas }}
+            {{- end }}
+            selector:
+              matchLabels:
+                app: {{ $name }}
+            template:
+              metadata:
+                labels:
+                  app: {{ $name }}
+                  environment: {{ $spec.environment | default "production" }}
+              spec:
+                containers:
+                - name: app
+                  image: {{ $spec.image }}
+                  ports:
+                  - containerPort: {{ $spec.port | default 8080 }}
+                  resources:
+                    requests:
+                      cpu: 50m
+                      memory: 64Mi
+                    limits:
+                      cpu: 200m
+                      memory: 256Mi
+                  {{- if $spec.config }}
+                  envFrom:
+                  - configMapRef:
+                      name: {{ $name }}-config
+                  {{- end }}
+
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: service
+            labels:
+              app: {{ $name }}
+              managed-by: crossplane
+          spec:
+            selector:
+              app: {{ $name }}
+            ports:
+            - port: 8080
+              targetPort: {{ $spec.port | default 8080 }}
+              protocol: TCP
+
+          {{- if $spec.config }}
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: {{ $name }}-config
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: config
+            labels:
+              app: {{ $name }}
+              managed-by: crossplane
+          data:
+          {{- range $key, $val := $spec.config }}
+            {{ $key }}: {{ $val | quote }}
+          {{- end }}
+          {{- end }}
+
+          {{- if $asEnabled }}
+          ---
+          apiVersion: autoscaling/v2
+          kind: HorizontalPodAutoscaler
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: hpa
+            labels:
+              app: {{ $name }}
+              managed-by: crossplane
+          spec:
+            scaleTargetRef:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: {{ $name }}
+            minReplicas: {{ $asMin }}
+            maxReplicas: {{ $asMax }}
+            metrics:
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: {{ $asCPU }}
+          {{- end }}
+
+          {{- $depAvailable := 0 }}
+          {{- if .observed.resources.deployment }}
+            {{- $depAvailable = .observed.resources.deployment.resource.status.availableReplicas | default 0 }}
+          {{- end }}
+
+          ---
+          apiVersion: {{ .observed.composite.resource.apiVersion }}
+          kind: {{ .observed.composite.resource.kind }}
+          metadata:
+            name: {{ .observed.composite.resource.metadata.name }}
+            namespace: {{ .observed.composite.resource.metadata.namespace }}
+          status:
+            conditions:
+            - lastTransitionTime: "1970-01-01T00:00:00Z"
+              {{- if gt (int $depAvailable) 0 }}
+              reason: Available
+              status: "True"
+              {{- else }}
+              reason: Creating
+              status: "False"
+              message: "Waiting for Deployment to have available replicas"
+              {{- end }}
+              type: Ready

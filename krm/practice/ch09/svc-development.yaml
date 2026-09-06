@@ -1,0 +1,13 @@
+apiVersion: platform.example.io/v1alpha1
+kind: MicroService
+metadata:
+  name: payments-service
+  namespace: team-alpha
+spec:
+  image: nginx:alpine
+  environment: development
+  port: 8080
+  config:
+    LOG_LEVEL: debug
+    SERVICE_NAME: payments
+    TIMEOUT_SECONDS: "30"

@@ -1,0 +1,18 @@
+apiVersion: repo.github.upbound.io/v1alpha1
+kind: RepositoryFile
+metadata:
+  name: crossplane-test-config
+spec:
+  forProvider:
+    repository: learning-crossplane
+    file: config/crossplane.yaml
+    content: |
+      # Managed by Crossplane
+      environment: test
+      managed_by: crossplane
+      version: v2
+    branch: feature/crossplane-test
+    commitMessage: "chore: add config file via Crossplane"
+    overwriteOnCreate: true
+  providerConfigRef:
+    name: default

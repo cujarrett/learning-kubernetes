@@ -1,0 +1,43 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: featurebranches.platform.example.io
+spec:
+  group: platform.example.io
+  names:
+    kind: FeatureBranch
+    plural: featurebranches
+  scope: Cluster
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required: [repository, branchName]
+            properties:
+              repository:
+                type: string
+                description: GitHub repository name (not the full URL)
+              branchName:
+                type: string
+                description: Name of the branch to create (e.g. feature/my-thing)
+              sourceBranch:
+                type: string
+                default: main
+                description: Branch to branch from
+              configContent:
+                type: string
+                description: Content written to config/branch.yaml on the new branch
+                default: "# Managed by Crossplane FeatureBranch\n"
+          status:
+            type: object
+            properties:
+              branchReady:
+                type: boolean
+              fileReady:
+                type: boolean

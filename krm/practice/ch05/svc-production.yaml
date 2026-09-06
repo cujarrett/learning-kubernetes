@@ -1,0 +1,16 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: svc-production
+  namespace: default
+spec:
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        channel: advanced
+  image: nginx:alpine
+  port: 80
+  environment: production
+  config:
+    LOG_LEVEL: warn
+    APP_NAME: svc-production

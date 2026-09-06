@@ -1,0 +1,13 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: beta-api
+  namespace: team-beta
+spec:
+  image: nginx:alpine
+  replicas: 2
+  port: 8080
+  environment: production
+  config:
+    APP_TEAM: beta
+    LOG_LEVEL: warn

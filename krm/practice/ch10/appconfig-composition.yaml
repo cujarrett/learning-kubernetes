@@ -1,0 +1,13 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: appconfig-composition
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.io/v1alpha1
+    kind: AppConfig
+  mode: Pipeline
+  pipeline:
+  - step: create-config
+    functionRef:
+      name: function-app-config

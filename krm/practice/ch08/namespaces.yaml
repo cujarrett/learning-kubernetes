@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-alpha
+  labels:
+    team: alpha
+    managed-by: platform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-beta
+  labels:
+    team: beta
+    managed-by: platform

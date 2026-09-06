@@ -1,0 +1,13 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: my-webservice
+  namespace: default
+spec:
+  image: nginx:alpine
+  replicas: 2
+  port: 80
+  environment: development
+  config:
+    LOG_LEVEL: debug
+    APP_NAME: my-webservice

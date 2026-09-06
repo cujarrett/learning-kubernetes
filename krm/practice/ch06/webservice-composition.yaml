@@ -1,0 +1,86 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: webservice-composition
+  labels:
+    channel: stable                           # Used by compositionSelector on the XR to pick this Composition
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.io/v1alpha1  # Must match the XRD's group/version
+    kind: WebService                          # Must match the XRD's names.kind - this is how Crossplane links them
+  mode: Pipeline                              # Run a sequence of Function steps
+  pipeline:
+  - step: render-webservice                   # Arbitrary name - shows up in events/logs
+    functionRef:
+      name: function-go-templating            # Must match the metadata.name of the installed Function object
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline                          # Template is embedded here (alternative: ConfigMap)
+      inline:
+        template: |
+          {{- $name := .observed.composite.resource.metadata.name }}
+          {{- $ns   := .observed.composite.resource.metadata.namespace }}
+          {{- $spec := .observed.composite.resource.spec }}
+          ---                                               # "---" separator tells the function this is a new resource
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: deployment  # Required by function-go-templating v0.8+
+            labels:
+              app: {{ $name }}
+              environment: {{ $spec.environment | default "production" }}  # | default - safe fallback if field omitted
+              revision: "2"
+          spec:
+            replicas: {{ $spec.replicas | default 1 }}
+            selector:
+              matchLabels:
+                app: {{ $name }}              # Selector must match the pod template labels below
+            template:
+              metadata:
+                labels:
+                  app: {{ $name }}            # These labels are what the Service selector targets
+                  environment: {{ $spec.environment | default "production" }}
+              spec:
+                containers:
+                - name: app
+                  image: {{ $spec.image }}    # Required field - no default, XRD schema enforces it
+                  ports:
+                  - containerPort: {{ $spec.port | default 80 }}
+          ---                                 # Second resource starts here
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: service  # Required by function-go-templating v0.8+
+            labels:
+              app: {{ $name }}
+          spec:
+            selector:
+              app: {{ $name }}                # Routes traffic to pods with label app={{ $name }}
+            ports:
+            - port: 8080                      # Port the Service listens on inside the cluster
+              targetPort: {{ $spec.port | default 80 }}  # Port on the pod to forward to
+              protocol: TCP
+          {{- if $spec.config }}              # Only render the ConfigMap if spec.config was provided
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: {{ $name }}-config
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: configmap  # Required by function-go-templating v0.8+
+            labels:
+              app: {{ $name }}
+              revision: "2"           # ← add this line
+          data:
+          {{- range $key, $val := $spec.config }}   # Iterate over the free-form map[string]string
+            {{ $key }}: {{ $val | quote }}           # | quote wraps the value in quotes - safe for strings with spaces
+          {{- end }}
+          {{- end }}                          # End of the if block - no ConfigMap rendered if config was absent

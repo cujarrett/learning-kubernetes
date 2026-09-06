@@ -1,0 +1,9 @@
+apiVersion: platform.example.io/v1alpha1
+kind: AppConfig
+metadata:
+  name: payments
+  namespace: default
+spec:
+  appName: payments-service
+  environment: production
+  owner: team-alpha

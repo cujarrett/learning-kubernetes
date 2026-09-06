@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: learn-nginx
+  namespace: default
+spec:
+  selector:
+    app: learn-nginx
+  ports:
+  - port: 8080
+    targetPort: 80
+    protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,76 @@
+# ── Role (namespace-scoped) for team-alpha ────────────────────────────────────
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: team-alpha
+  name: webservice-developer
+rules:
+- apiGroups: ["platform.example.io"]
+  resources: ["webservices"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["services", "configmaps", "pods"]
+  verbs: ["get", "list", "watch"]
+---
+# ── Role (namespace-scoped) for team-beta - identical permissions, different namespace ──
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: team-beta
+  name: webservice-developer
+rules:
+- apiGroups: ["platform.example.io"]
+  resources: ["webservices"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["services", "configmaps", "pods"]
+  verbs: ["get", "list", "watch"]
+---
+# ── RoleBinding: bind "alice" (ServiceAccount) to team-alpha's Role ──────────
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: team-alpha
+  name: alice-webservice-developer
+subjects:
+- kind: ServiceAccount
+  name: alice
+  namespace: team-alpha
+roleRef:
+  kind: Role
+  name: webservice-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# ── RoleBinding: bind "bob" (ServiceAccount) to team-beta's Role ─────────────
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: team-beta
+  name: bob-webservice-developer
+subjects:
+- kind: ServiceAccount
+  name: bob
+  namespace: team-beta
+roleRef:
+  kind: Role
+  name: webservice-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# ── ServiceAccounts representing two developers ───────────────────────────────
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alice
+  namespace: team-alpha
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bob
+  namespace: team-beta

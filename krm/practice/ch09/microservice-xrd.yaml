@@ -1,0 +1,79 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: microservices.platform.example.io
+spec:
+  scope: Namespaced
+  group: platform.example.io
+  names:
+    kind: MicroService
+    plural: microservices
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              image:
+                type: string
+                description: "Container image including tag."
+              replicas:
+                type: integer
+                description: "Replica count. If autoscaling is enabled, this sets the initial value."
+                minimum: 1
+                maximum: 20
+              port:
+                type: integer
+                description: "Port the container listens on."
+                default: 8080
+              environment:
+                type: string
+                default: production
+                enum:
+                - development
+                - staging
+                - production
+              config:
+                type: object
+                description: "Key-value pairs injected as environment variables."
+                additionalProperties:
+                  type: string
+              autoscaling:
+                type: object
+                description: "Horizontal autoscaling settings."
+                properties:
+                  enabled:
+                    type: boolean
+                    default: false
+                  minReplicas:
+                    type: integer
+                    default: 2
+                    minimum: 1
+                  maxReplicas:
+                    type: integer
+                    default: 10
+                    minimum: 1
+                  targetCPUUtilization:
+                    type: integer
+                    default: 70
+                    minimum: 10
+                    maximum: 100
+                    description: "Target average CPU utilization percent to trigger scaling."
+            required:
+            - image
+          status:
+            type: object
+            properties:
+              ready:
+                type: boolean
+              replicas:
+                type: integer
+              clusterIP:
+                type: string
+              autoscalingEnabled:
+                type: boolean

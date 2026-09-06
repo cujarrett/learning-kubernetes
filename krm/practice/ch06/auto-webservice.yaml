@@ -1,0 +1,12 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: auto-svc
+  namespace: default
+spec:
+  crossplane:
+    compositionUpdatePolicy: Automatic
+  image: nginx:alpine
+  replicas: 1
+  port: 80
+  environment: staging

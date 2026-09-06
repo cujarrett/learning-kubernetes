@@ -1,0 +1,17 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: svc-staging
+  namespace: default
+spec:
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        channel: advanced
+  image: nginx:alpine
+  port: 80
+  environment: staging
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5

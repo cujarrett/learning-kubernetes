@@ -1,0 +1,3 @@
+# Crossplane package build artifacts
+*.xpkg
+.DS_Store

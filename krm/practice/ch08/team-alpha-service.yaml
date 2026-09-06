@@ -1,0 +1,13 @@
+apiVersion: platform.example.io/v1alpha1
+kind: WebService
+metadata:
+  name: alpha-frontend
+  namespace: team-alpha
+spec:
+  image: nginx:alpine
+  replicas: 1
+  port: 80
+  environment: staging
+  config:
+    APP_TEAM: alpha
+    LOG_LEVEL: info

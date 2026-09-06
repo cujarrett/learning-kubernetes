@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: team-metadata-nginx-config
+  namespace: default
+data:
+  default.conf: |
+    server {
+      listen 80;
+      location / {
+        default_type application/json;
+        return 200 '{"costCenter":"CC-1234","slackChannel":"#platform","tier":"gold"}';
+      }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: team-metadata-mock
+  namespace: default
+  labels:
+    app: team-metadata-mock
+spec:
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    volumeMounts:
+    - name: config
+      mountPath: /etc/nginx/conf.d/default.conf
+      subPath: default.conf
+  volumes:
+  - name: config
+    configMap:
+      name: team-metadata-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: team-metadata-service
+  namespace: default
+spec:
+  selector:
+    app: team-metadata-mock
+  ports:
+  - port: 80
+    targetPort: 80

@@ -1,0 +1,17 @@
+apiVersion: platform.example.io/v1alpha1
+kind: MicroService
+metadata:
+  name: orders-service
+  namespace: team-alpha
+spec:
+  image: nginx:alpine
+  environment: production
+  port: 8080
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilization: 60
+  config:
+    LOG_LEVEL: warn
+    SERVICE_NAME: orders

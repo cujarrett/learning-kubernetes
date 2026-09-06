@@ -1,0 +1,54 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: feature-branch-composition
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.io/v1alpha1
+    kind: FeatureBranch
+  mode: Pipeline
+  pipeline:
+  - step: render-branch-and-file
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{- $name    := .observed.composite.resource.metadata.name }}
+          {{- $spec    := .observed.composite.resource.spec }}
+          {{- $source  := $spec.sourceBranch | default "main" }}
+          {{- $content := $spec.configContent | default "# Managed by Crossplane FeatureBranch\n" }}
+          ---
+          apiVersion: repo.github.upbound.io/v1alpha1
+          kind: Branch
+          metadata:
+            name: {{ $name }}-branch
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: feature-branch
+          spec:
+            forProvider:
+              repository: {{ $spec.repository }}
+              branch: {{ $spec.branchName }}
+              sourceBranch: {{ $source }}
+            providerConfigRef:
+              name: default
+          ---
+          apiVersion: repo.github.upbound.io/v1alpha1
+          kind: RepositoryFile
+          metadata:
+            name: {{ $name }}-config
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: branch-config-file
+          spec:
+            forProvider:
+              repository: {{ $spec.repository }}
+              file: config/branch.yaml
+              content: {{ $content | quote }}
+              branch: {{ $spec.branchName }}
+              commitMessage: "chore: seed config for {{ $spec.branchName }} via Crossplane"
+              overwriteOnCreate: true
+            providerConfigRef:
+              name: default

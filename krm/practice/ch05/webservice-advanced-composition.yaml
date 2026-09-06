@@ -1,0 +1,130 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: webservice-advanced-composition
+  labels:
+    channel: advanced
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.io/v1alpha1
+    kind: WebService
+  mode: Pipeline
+  pipeline:
+  - step: render-webservice
+    functionRef:
+      name: function-go-templating
+    input:
+      apiVersion: gotemplating.fn.crossplane.io/v1beta1
+      kind: GoTemplate
+      source: Inline
+      inline:
+        template: |
+          {{- $name := .observed.composite.resource.metadata.name }}
+          {{- $ns   := .observed.composite.resource.metadata.namespace }}
+          {{- $spec := .observed.composite.resource.spec }}
+          {{- $env  := $spec.environment | default "production" }}
+
+          {{/* Environment-driven replica default */}}
+          {{- $replicas := $spec.replicas | default 0 | int }}
+          {{- if eq $replicas 0 }}
+            {{- if eq $env "production" }}
+              {{- $replicas = 3 }}
+            {{- else if eq $env "staging" }}
+              {{- $replicas = 2 }}
+            {{- else }}
+              {{- $replicas = 1 }}
+            {{- end }}
+          {{- end }}
+
+          {{/* Nil-safe autoscaling object */}}
+          {{- $autoscaling := $spec.autoscaling | default dict }}
+
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: deployment
+            labels:
+              app: {{ $name }}
+              environment: {{ $env }}
+              managed-by: crossplane
+          spec:
+            {{- if not $autoscaling.enabled }}
+            replicas: {{ $replicas }}
+            {{- end }}
+            selector:
+              matchLabels:
+                app: {{ $name }}
+            template:
+              metadata:
+                labels:
+                  app: {{ $name }}
+                  environment: {{ $env }}
+              spec:
+                containers:
+                - name: app
+                  image: {{ $spec.image }}
+                  ports:
+                  - containerPort: {{ $spec.port | default 80 }}
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: service
+            labels:
+              app: {{ $name }}
+          spec:
+            selector:
+              app: {{ $name }}
+            ports:
+            - port: 8080
+              targetPort: {{ $spec.port | default 80 }}
+              protocol: TCP
+          {{- if $autoscaling.enabled }}
+          ---
+          apiVersion: autoscaling/v2
+          kind: HorizontalPodAutoscaler
+          metadata:
+            name: {{ $name }}
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: hpa
+            labels:
+              app: {{ $name }}
+          spec:
+            scaleTargetRef:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: {{ $name }}
+            minReplicas: {{ $autoscaling.minReplicas | default 2 }}
+            maxReplicas: {{ $autoscaling.maxReplicas | default 10 }}
+            metrics:
+            - type: Resource
+              resource:
+                name: cpu
+                target:
+                  type: Utilization
+                  averageUtilization: 70
+          {{- end }}
+          {{- if $spec.config }}
+          ---
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: {{ $name }}-config
+            namespace: {{ $ns }}
+            annotations:
+              gotemplating.fn.crossplane.io/composition-resource-name: configmap
+            labels:
+              app: {{ $name }}
+          data:
+          {{- range $key, $val := $spec.config }}
+            {{ $key }}: {{ $val | quote }}
+          {{- end }}
+          {{- end }}

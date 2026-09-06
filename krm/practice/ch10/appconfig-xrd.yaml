@@ -1,0 +1,37 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: appconfigs.platform.example.io
+spec:
+  scope: Namespaced
+  group: platform.example.io
+  names:
+    kind: AppConfig
+    plural: appconfigs
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              appName:
+                type: string
+              environment:
+                type: string
+                default: production
+                enum: [development, staging, production]
+              owner:
+                type: string
+            required:
+            - appName
+            - owner
+          status:
+            type: object
+            properties:
+              configMapName:
+                type: string

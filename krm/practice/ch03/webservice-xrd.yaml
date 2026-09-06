@@ -1,0 +1,63 @@
+apiVersion: apiextensions.crossplane.io/v2         # Crossplane v2 XRD API
+kind: CompositeResourceDefinition                  # Tells Crossplane to create a CRD and watch for this Kind
+metadata:
+  name: webservices.platform.example.io            # MUST be <plural>.<group> - Kubernetes enforces this
+spec:
+  scope: Namespaced                                # XR objects live in a namespace (not cluster-wide)
+  group: platform.example.io                       # API group - your org's domain
+  names:
+    kind: WebService                               # PascalCase - what developers write in their YAML
+    plural: webservices                            # Lowercase plural - used in kubectl and API URL paths
+  versions:
+  - name: v1alpha1                                 # Version string - signals this API is not yet stable
+    served: true                                   # API server accepts this version
+    referenceable: true                            # Compositions can reference this version
+    schema:
+      openAPIV3Schema:                             # Everything below here is JSON Schema for validation
+        type: object                               # The root resource is an object (always true)
+        properties:
+          spec:                                    # Defines the shape of spec: (developer inputs)
+            type: object
+            description: WebService desired configuration.
+            properties:
+              image:
+                type: string                       # Must be a string
+                description: "OCI container image with tag, e.g. nginx:alpine."
+              replicas:
+                type: integer                      # Must be a whole number
+                minimum: 1                         # Kubernetes rejects values below this
+                maximum: 10                        # Kubernetes rejects values above this
+                default: 1                         # Kubernetes injects this if replicas is omitted
+                description: Number of pod replicas. Defaults to 1 if omitted.
+              port:
+                type: integer
+                default: 80                        # Defaults to port 80 if omitted
+                description: Port the container listens on.
+              environment:
+                type: string
+                default: production                # Defaults to production if omitted
+                enum:                              # Only these exact values are accepted
+                - development
+                - staging
+                - production
+                description: Runtime environment name used for labeling and defaults.
+              config:
+                type: object                       # A nested object (map) of arbitrary keys
+                description: Key-value pairs injected into the container as environment variables.
+                additionalProperties:
+                  type: string                     # Every value in the map must be a string
+            required:
+            - image                                # Kubernetes rejects the resource if image is missing
+          status:                                  # Defines the shape of status: (Crossplane-written outputs)
+            type: object
+            description: WebService observed state.
+            properties:
+              ready:
+                type: boolean                      # True/false - Crossplane writes this after reconciling
+                description: True when all replicas are available.
+              replicas:
+                type: integer                      # Crossplane copies this from the Deployment's status
+                description: Number of currently available pod replicas.
+              clusterIP:
+                type: string                       # Crossplane copies this from the Service's spec
+                description: Internal ClusterIP assigned to the Service.
